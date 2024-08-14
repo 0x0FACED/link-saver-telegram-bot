@@ -1,7 +1,7 @@
 package domain
 
 type Link struct {
-	OriginalURL string
-	CustomURL   string
-	Description string
+	OriginalURL  string
+	GeneratedURL string
+	Description  string
 }
