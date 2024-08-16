@@ -4,7 +4,6 @@ import (
 	"context"
 
 	api "github.com/0x0FACED/link-saver-telegram-bot/internal/grpc"
-	"github.com/0x0FACED/link-saver-telegram-bot/internal/logger"
 	"github.com/0x0FACED/link-saver-telegram-bot/internal/logger/zaplog"
 	"github.com/go-telegram/bot"
 )
@@ -12,20 +11,20 @@ import (
 type TelegramBot struct {
 	bot       *bot.Bot
 	apiClient *api.APIClient
-	logger    logger.Logger
+	logger    *zaplog.ZapLogger
 }
 
 func New(token string, apiHost string) *TelegramBot {
 	logger := zaplog.New()
 	bot, err := bot.New(token, opts()...)
 	if err != nil {
-		logger.Fatal("cant create bot instance", err)
+		logger.Fatal("cant create bot instance: " + err.Error())
 		return nil
 	}
 
 	client, err := api.New(apiHost)
 	if err != nil {
-		logger.Fatal("cant create conn with api", err)
+		logger.Fatal("cant create conn with api: " + err.Error())
 		return nil
 	}
 
@@ -39,14 +38,13 @@ func New(token string, apiHost string) *TelegramBot {
 
 func opts() []bot.Option {
 	return []bot.Option{
-		bot.WithDefaultHandler(startHandler),
+		bot.WithDefaultHandler(mainHandler),
 	}
 }
 
 func (b *TelegramBot) registerHandlers() {
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, saveLinkHandler)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/delete", bot.MatchTypeExact, deleteLinkHandler)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/get", bot.MatchTypeExact, getLinksHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, startHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypeExact, helpHandler)
 }
 
 func (b *TelegramBot) Start() {
