@@ -40,7 +40,7 @@ func New() *ZapLogger {
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.LowercaseColorLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeTime:     customTimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
@@ -49,29 +49,33 @@ func New() *ZapLogger {
 	fEnc := zapcore.NewConsoleEncoder(config)
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(cEnc, zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
-		zapcore.NewCore(fEnc, zapcore.AddSync(file), zapcore.InfoLevel),
+		zapcore.NewCore(cEnc, zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
+		zapcore.NewCore(fEnc, zapcore.AddSync(file), zapcore.DebugLevel),
 	)
 
-	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel))
 
 	return &ZapLogger{
 		log: logger,
 	}
 }
 
-func (z *ZapLogger) Info(msg string, err error, opts ...zap.Field) {
-	panic("not implemented") // TODO: Implement
+func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.Format("[2006-01-02 | 15:04:05]"))
 }
 
-func (z *ZapLogger) Debug(msg string, err error, opts ...zap.Field) {
-	panic("not implemented") // TODO: Implement
+func (z *ZapLogger) Info(wrappedMsg string, fields ...zap.Field) {
+	z.log.Info(wrappedMsg, fields...)
 }
 
-func (z *ZapLogger) Error(msg string, err error, opts ...zap.Field) {
-	panic("not implemented") // TODO: Implement
+func (z *ZapLogger) Debug(wrappedMsg string, fields ...zap.Field) {
+	z.log.Debug(wrappedMsg, fields...)
 }
 
-func (z *ZapLogger) Fatal(msg string, err error, opts ...zap.Field) {
-	panic("not implemented") // TODO: Implement
+func (z *ZapLogger) Error(wrappedMsg string, fields ...zap.Field) {
+	z.log.Error(wrappedMsg, fields...)
+}
+
+func (z *ZapLogger) Fatal(wrappedMsg string, fields ...zap.Field) {
+	z.log.Fatal(wrappedMsg, fields...)
 }
