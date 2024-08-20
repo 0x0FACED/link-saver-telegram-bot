@@ -61,15 +61,19 @@ func saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	logger.Debug("save: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
 	// TODO: logic of saving link with api
 	api := getApiFromCtx(ctx)
-	msg := strings.SplitN(update.Message.Text, " ", 2)
+	msg := strings.SplitN(update.Message.Text, " ", 3)
+	logger.Debug("part0: "+msg[0], zap.String("user", update.Message.Chat.Username))
+	logger.Debug("part1: "+msg[1], zap.String("user", update.Message.Chat.Username))
+	logger.Debug("part2: "+msg[2], zap.String("user", update.Message.Chat.Username))
 	req := gen.SaveLinkRequest{
-		OriginalUrl: msg[0],
-		Description: msg[1],
+		OriginalUrl: msg[1],
+		Description: msg[2],
+		Username:    update.Message.Chat.Username,
 	}
 
-	withTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	withTimeout, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	resp, err := api.SaveLink(withTimeout, req)
+	resp, err := api.SaveLink(withTimeout, &req)
 
 	if err != nil {
 		logger.Error("some error: "+err.Error(), zap.String("user", update.Message.Chat.Username), zap.String("mes", update.Message.Text))
