@@ -64,6 +64,13 @@ func saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	// TODO: logic of saving link with api
 	api := getApiFromCtx(ctx)
 	msg := strings.SplitN(update.Message.Text, " ", 3)
+	if len(msg) != 3 {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "You forgot description.",
+		})
+		helpHandler(ctx, b, update)
+	}
 	logger.Debug("part0: "+msg[0], zap.String("user", update.Message.Chat.Username))
 	logger.Debug("part1: "+msg[1], zap.String("user", update.Message.Chat.Username))
 	logger.Debug("part2: "+msg[2], zap.String("user", update.Message.Chat.Username))
