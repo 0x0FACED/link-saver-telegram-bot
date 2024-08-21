@@ -39,6 +39,7 @@ func New(token string, apiHost string) *TelegramBot {
 func opts() []bot.Option {
 	return []bot.Option{
 		bot.WithDefaultHandler(mainHandler),
+		bot.WithCallbackQueryDataHandler("button", bot.MatchTypePrefix, callbackInlineKbHandler),
 	}
 }
 
@@ -49,6 +50,7 @@ func (b *TelegramBot) registerHandlers() {
 
 func (b *TelegramBot) Start() {
 	b.registerHandlers()
+
 	b.bot.Start(b.getCtx())
 }
 
