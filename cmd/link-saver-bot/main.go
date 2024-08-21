@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	bot := telegram.New(mustToken(), "aasdasd")
+	bot := telegram.New(mustToken(), "localhost:50051")
 
 	bot.Start()
 }
