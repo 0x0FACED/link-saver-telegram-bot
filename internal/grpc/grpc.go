@@ -24,8 +24,22 @@ func New(host string) (*APIClient, error) {
 	}, nil
 }
 
+func (a APIClient) GetLink(ctx context.Context, req *gen.GetLinkRequest) (*gen.GetLinkResponse, error) {
+	resp, err := a.client.GetLink(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func (a APIClient) GetLinks(ctx context.Context, req *gen.GetLinksRequest) (*gen.GetLinksResponse, error) {
-	panic("TODO: impl me")
+	resp, err := a.client.GetLinks(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func (a APIClient) SaveLink(ctx context.Context, req *gen.SaveLinkRequest) (*gen.SaveLinkResponse, error) {
