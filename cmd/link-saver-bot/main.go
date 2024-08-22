@@ -9,7 +9,9 @@ import (
 
 func main() {
 	bot := telegram.New(mustToken(), "localhost:50051")
-
+	if bot == nil {
+		panic("Bot didn't created.")
+	}
 	bot.Start()
 }
 
