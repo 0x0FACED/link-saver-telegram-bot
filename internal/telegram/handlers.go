@@ -15,24 +15,17 @@ import (
 	"go.uber.org/zap"
 )
 
-var startMsg = `Hello!
-
-This bot can:
-
-1. Save links you send: <link> <description>
-Example: https://youtube.com/example/link youtube link
-2. Gave you links you saved: <description>
-Example: youtube link
-Bot will return you: 
-https://youtube.com/example/link
-<generated link in the server>
-3. Delete links you saved: <description>
-`
-
 func mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	logger := getLoggerFromCtx(ctx)
-	logger.Debug("new message: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+	logger.Debug("mainHandler(): "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+
 	msgParts := strings.Fields(update.Message.Text)
+	// if user sent picture or something like that, but not a text
+	if len(msgParts) == 0 {
+		helpHandler(ctx, b, update)
+		return
+	}
+
 	switch msgParts[0] {
 	case "/start":
 		startHandler(ctx, b, update)
@@ -40,6 +33,8 @@ func mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		helpHandler(ctx, b, update)
 	case "/get":
 		getLinksHandler(ctx, b, update)
+	case "/getall":
+		getAllLinksHandler(ctx, b, update)
 	case "/save":
 		saveLinkHandler(ctx, b, update)
 	case "/delete":
@@ -51,29 +46,27 @@ func mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	logger := getLoggerFromCtx(ctx)
-	logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+	logger.Debug("startHandler(): "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+
 	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   startMsg,
+		ChatID:    update.Message.Chat.ID,
+		Text:      startMsg_EN,
+		ParseMode: models.ParseModeMarkdownV1,
 	})
 }
 
 func saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	logger := getLoggerFromCtx(ctx)
-	logger.Debug("save: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
-	// TODO: logic of saving link with api
+	logger.Debug("saveLinkHandler(): "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+
 	api := getApiFromCtx(ctx)
+
 	msg := strings.SplitN(update.Message.Text, " ", 3)
 	if len(msg) != 3 {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "You forgot description.",
-		})
-		helpHandler(ctx, b, update)
+		saveLinkHandlerHelper(ctx, b, update)
+		return
 	}
-	logger.Debug("part0: "+msg[0], zap.String("user", update.Message.Chat.Username))
-	logger.Debug("part1: "+msg[1], zap.String("user", update.Message.Chat.Username))
-	logger.Debug("part2: "+msg[2], zap.String("user", update.Message.Chat.Username))
+
 	req := &gen.SaveLinkRequest{
 		OriginalUrl: msg[1],
 		Description: msg[2],
@@ -85,7 +78,10 @@ func saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	resp, err := api.SaveLink(withTimeout, req)
 
 	if err != nil {
-		logger.Error("some error: "+err.Error(), zap.String("user", update.Message.Chat.Username), zap.String("mes", update.Message.Text))
+		logger.Error("error by API: "+err.Error(),
+			zap.String("user", update.Message.Chat.Username),
+			zap.String("user_msg", update.Message.Text),
+		)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Error! Try again.",
@@ -105,12 +101,18 @@ func deleteLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 func getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	logger := getLoggerFromCtx(ctx)
-	logger.Debug("get links: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
-	// TODO: logic of saving link with api
+	logger.Debug("getLinksHandler(): "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+
 	api := getApiFromCtx(ctx)
+
 	msg := strings.SplitN(update.Message.Text, " ", 2)
 	// msg[0] -> /get command
 	// msg[1] -> description
+
+	if len(msg) != 2 {
+		getLinksHandlerHelper(ctx, b, update)
+		return
+	}
 
 	req := &gen.GetLinksRequest{
 		Username:    update.Message.From.Username,
@@ -120,15 +122,48 @@ func getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	resp, err := api.GetLinks(withTimeout, req)
+
 	if err != nil {
 		logger.Error("some error: "+err.Error(), zap.String("user", update.Message.Chat.Username), zap.String("mes", update.Message.Text))
+
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Error! Try again." + err.Error(),
 		})
 		return
 	}
+
 	logger.Debug("got links: ", zap.Any("links", resp.Links))
+
+	inlineKbHandler(ctx, b, update, resp.Links)
+}
+
+func getAllLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	logger := getLoggerFromCtx(ctx)
+	logger.Debug("getAllLinksHandler(): "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+
+	api := getApiFromCtx(ctx)
+
+	req := &gen.GetAllLinksRequest{
+		Username: update.Message.From.Username,
+	}
+
+	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	resp, err := api.GetAllLinks(withTimeout, req)
+	if err != nil {
+		logger.Error("some error: "+err.Error(), zap.String("user", update.Message.Chat.Username), zap.String("mes", update.Message.Text))
+
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Error! Try again." + err.Error(),
+		})
+		return
+	}
+
+	logger.Debug("got links: ", zap.Any("links", resp.Links))
+
 	inlineKbHandler(ctx, b, update, resp.Links)
 }
 
@@ -139,34 +174,45 @@ func callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 		ShowAlert:       false,
 	})
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-		Text:   "You selected the link: " + update.CallbackQuery.Data,
-	})
+	chosen := strings.SplitN(update.CallbackQuery.Data, ":", 4)
+	if len(chosen) != 4 {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+			Text:   "Some error, try again.",
+		})
+		return
+	}
 
 	api := getApiFromCtx(ctx)
 
 	reqParams := strings.Split(update.CallbackQuery.Data, ":")
+
 	logger.Info("request GetLink params", zap.String("id", reqParams[1]), zap.String("desc", reqParams[2]))
 	idReq, err := strconv.Atoi(reqParams[1])
+
 	if err != nil {
 		logger.Error("error happened", zap.Error(err))
+
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Error! Try again." + err.Error(),
 		})
 		return
 	}
+
 	req := &gen.GetLinkRequest{
 		UrlId:       int32(idReq),
 		Username:    update.CallbackQuery.From.Username,
 		Description: reqParams[2],
 	}
+
 	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
+
 	resp, err := api.GetLink(withTimeout, req)
 	if err != nil {
 		logger.Error("error happened", zap.Error(err))
+
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
 			Text:   "Error! Try again." + err.Error(),
@@ -174,19 +220,28 @@ func callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 		return
 	}
 
+	text := fmt.Sprintf("Description: %s, original link: %s\nGenerated link: %s", chosen[2], chosen[3], resp.GeneratedUrl)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-		Text:   resp.GeneratedUrl,
+		Text:   text,
 	})
 }
 
 func inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, links []*gen.Link) {
+	if len(links) == 0 {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "No saved links 😞",
+		})
+	}
+
 	logger := getLoggerFromCtx(ctx)
+
 	inline := &models.InlineKeyboardMarkup{}
 	buttons := make([][]models.InlineKeyboardButton, 0, len(links))
-	for _, link := range links {
-		text := fmt.Sprintf("%s:%s", link.Description, link.OriginalUrl)
-		callbackData := fmt.Sprintf("button:%d:%s", link.LinkId, link.Description)
+	for i, link := range links {
+		text := fmt.Sprintf("%d. %s: %s", i, link.Description, link.OriginalUrl)
+		callbackData := fmt.Sprintf("button:%d:%s:%s", link.LinkId, link.Description, link.OriginalUrl)
 
 		button := models.InlineKeyboardButton{
 			Text:         text,
@@ -211,9 +266,10 @@ func inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, lin
 func helpHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	logger := getLoggerFromCtx(ctx)
 	logger.Debug("new message: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   helpMsg,
+		Text:   startMsg_EN,
 	})
 }
 
