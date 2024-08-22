@@ -42,6 +42,15 @@ func (a APIClient) GetLinks(ctx context.Context, req *gen.GetLinksRequest) (*gen
 	return resp, nil
 }
 
+func (a APIClient) GetAllLinks(ctx context.Context, req *gen.GetAllLinksRequest) (*gen.GetAllLinksResponse, error) {
+	resp, err := a.client.GetAllLinks(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func (a APIClient) SaveLink(ctx context.Context, req *gen.SaveLinkRequest) (*gen.SaveLinkResponse, error) {
 	resp, err := a.client.SaveLink(ctx, req)
 	if err != nil {
@@ -51,5 +60,9 @@ func (a APIClient) SaveLink(ctx context.Context, req *gen.SaveLinkRequest) (*gen
 }
 
 func (a APIClient) DeleteLink(ctx context.Context, req *gen.DeleteLinkRequest) (*gen.DeleteLinkResponse, error) {
-	panic("TODO: impl me")
+	resp, err := a.client.DeleteLink(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
