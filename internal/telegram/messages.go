@@ -80,15 +80,22 @@ var (
 	   Example: */get useful link*
 	   The bot will return a list of links that match the description (if any matches are found).
 	   When you select one of the links, the bot will return a generated new one.
-	   Example: *https://serverhost.com/gen/yourusername/generatedlink*
+	   Example: *https://serverhost.com/gen/your_telegram_id/generatedlink*
 	   _P.S. To get detailed instructions on how this command works, just click on it 👉 /get 👈_
 
-	3. *Delete saved links*:
+	3. *Retrieve ALL saved links*:
+	   Use the command: */list*
+	   The bot will return a list of links you have ever saved.
+	   When you select one of the links, the bot will return a generated new one.
+	   Example: *https://serverhost.com/gen/your_telegram_id/generatedlink*
+	   _P.S. To get detailed instructions on how this command works, just click on it 👉 /list 👈_
+
+	4. *Delete saved links*:
 	   Use the command: /delete <description>
 	   Example: */delete useful link*
 	   _P.S. To get detailed instructions on how this command works, just click on it 👉 /delete 👈_
 
-	4. *General help*:
+	5. *General help*:
 	   To get general help, click on 👉 /help 👈
 	
 	I hope this helps you make the most of my bot!
