@@ -16,9 +16,10 @@ type TelegramBot struct {
 
 func New(token string, apiHost string) *TelegramBot {
 	logger := zaplog.New()
+	logger.Debug("Creating bot instance...")
 	bot, err := bot.New(token, opts()...)
 	if err != nil {
-		logger.Fatal("cant create bot instance: " + err.Error())
+		logger.Fatal("Can't create bot instance: " + err.Error())
 		return nil
 	}
 
