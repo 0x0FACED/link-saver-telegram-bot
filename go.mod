@@ -3,7 +3,7 @@ module github.com/0x0FACED/link-saver-telegram-bot
 go 1.22.5
 
 require (
-	github.com/0x0FACED/proto-files v0.0.1
+	github.com/0x0FACED/proto-files v0.0.2
 	github.com/go-telegram/bot v1.6.1
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.65.0
