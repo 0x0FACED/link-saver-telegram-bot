@@ -15,55 +15,76 @@ import (
 	"go.uber.org/zap"
 )
 
-func mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("mainHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+type CommandHandlerFunc func(ctx context.Context, b *bot.Bot, update *models.Update)
+
+type Handlers struct {
+	handlers map[string]CommandHandlerFunc
+	api      *grpc.APIClient
+	logger   *zaplog.ZapLogger
+}
+
+func NewHandlers(api *grpc.APIClient, logger *zaplog.ZapLogger) *Handlers {
+	h := &Handlers{
+		api:      api,
+		logger:   logger,
+		handlers: make(map[string]CommandHandlerFunc),
+	}
+
+	h.initHandlers()
+
+	return h
+}
+
+func (h *Handlers) initHandlers() {
+	h.handlers["/start"] = h.startHandler
+	h.handlers["/help"] = h.helpHandler
+	h.handlers["/get"] = h.getLinksHandler
+	h.handlers["/list"] = h.getAllLinksHandler
+	h.handlers["/save"] = h.saveLinkHandler
+	h.handlers["/delete"] = h.deleteLinkHandler
+	h.handlers["/list"] = h.getAllLinksHandler
+}
+
+func (h *Handlers) mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.Message == nil {
+		h.logger.Debug("mainHandler(): ", zap.String("err", "nil!"))
+		return
+	}
+	h.logger.Debug("mainHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	msgParts := strings.Fields(update.Message.Text)
-	// if user sent picture or something like that, but not a text
 	if len(msgParts) == 0 {
-		helpHandler(ctx, b, update)
+		h.helpHandler(ctx, b, update)
 		return
 	}
 
-	switch msgParts[0] {
-	case "/start":
-		startHandler(ctx, b, update)
-	case "/help":
-		helpHandler(ctx, b, update)
-	case "/get":
-		getLinksHandler(ctx, b, update)
-	case "/list":
-		getAllLinksHandler(ctx, b, update)
-	case "/save":
-		saveLinkHandler(ctx, b, update)
-	case "/delete":
-		deleteLinkHandler(ctx, b, update)
-	default:
-		helpHandler(ctx, b, update)
+	if handler, ok := h.handlers[msgParts[0]]; ok {
+		handler(ctx, b, update)
+	} else {
+		h.helpHandler(ctx, b, update)
 	}
 }
 
-func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("startHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+func (h *Handlers) startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update == nil || update.Message == nil || h.logger == nil {
+		h.logger.Debug("mainHandler(): ", zap.String("err", "nil!"))
+		return
+	}
+	h.logger.Debug("startHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
 		Text:      startMsg_EN,
-		ParseMode: models.ParseModeMarkdownV1,
+		ParseMode: models.ParseModeMarkdown,
 	})
 }
 
-func saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("saveLinkHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
-
-	api := getApiFromCtx(ctx)
+func (h *Handlers) saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("saveLinkHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	msg := strings.SplitN(update.Message.Text, " ", 3)
 	if len(msg) != 3 {
-		saveLinkHandlerHelper(ctx, b, update)
+		h.saveLinkHandlerHelper(ctx, b, update)
 		return
 	}
 
@@ -75,42 +96,37 @@ func saveLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	resp, err := api.SaveLink(withTimeout, req)
+
+	h.logger.Debug("saveLinkHandler() request: ", zap.Any("req", req))
+	resp, err := h.api.SaveLink(withTimeout, req)
 
 	if err != nil {
-		logger.Error("error by API: "+err.Error(),
+		h.logger.Error("error by API: "+err.Error(),
 			zap.String("user", update.Message.Chat.Username),
 			zap.String("user_msg", update.Message.Text),
 		)
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "Error! Try again.",
-		})
-		return
 	}
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "Saved. " + resp.Message,
+		Text:   resp.Message,
 	})
 }
 
-func deleteLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	// TODO: logic of deleting link by api
+func (h *Handlers) deleteLinkHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("deleteLinkHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+
 }
 
-func getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("getLinksHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
-
-	api := getApiFromCtx(ctx)
+func (h *Handlers) getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("getLinksHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	msg := strings.SplitN(update.Message.Text, " ", 2)
 	// msg[0] -> /get command
 	// msg[1] -> description
 
 	if len(msg) != 2 {
-		getLinksHandlerHelper(ctx, b, update)
+		h.getLinksHandlerHelper(ctx, b, update)
 		return
 	}
 
@@ -121,10 +137,10 @@ func getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	resp, err := api.GetLinks(withTimeout, req)
+	resp, err := h.api.GetLinks(withTimeout, req)
 
 	if err != nil {
-		logger.Error("some error: "+err.Error(), zap.Int64("user", update.Message.From.ID), zap.String("mes", update.Message.Text))
+		h.logger.Error("some error: "+err.Error(), zap.Int64("user", update.Message.From.ID), zap.String("mes", update.Message.Text))
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
@@ -133,16 +149,14 @@ func getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	logger.Debug("got links: ", zap.Any("links", resp.Links))
+	h.logger.Debug("got links: ", zap.Any("links", resp.Links))
 
-	inlineKbHandler(ctx, b, update, resp.Links)
+	h.inlineKbHandler(ctx, b, update, resp.Links)
 }
 
-func getAllLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("getAllLinksHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+func (h *Handlers) getAllLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
-	api := getApiFromCtx(ctx)
+	h.logger.Debug("getAllLinksHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	req := &gen.GetAllLinksRequest{
 		UserId: update.Message.From.ID,
@@ -151,9 +165,9 @@ func getAllLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	resp, err := api.GetAllLinks(withTimeout, req)
+	resp, err := h.api.GetAllLinks(withTimeout, req)
 	if err != nil {
-		logger.Error("some error: "+err.Error(), zap.Int64("user", update.Message.From.ID), zap.String("mes", update.Message.Text))
+		h.logger.Error("some error: "+err.Error(), zap.Int64("user", update.Message.From.ID), zap.String("mes", update.Message.Text))
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
@@ -162,13 +176,12 @@ func getAllLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 		return
 	}
 
-	logger.Debug("got links: ", zap.Any("links", resp.Links))
+	h.logger.Debug("got links: ", zap.Any("links", resp.Links))
 
-	inlineKbHandler(ctx, b, update, resp.Links)
+	h.inlineKbHandler(ctx, b, update, resp.Links)
 }
 
-func callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
+func (h *Handlers) callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		ShowAlert:       false,
@@ -183,13 +196,11 @@ func callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 		return
 	}
 
-	api := getApiFromCtx(ctx)
-
-	logger.Info("request GetLink params", zap.String("id", chosen[1]), zap.String("desc", chosen[2]))
+	h.logger.Info("request GetLink params", zap.String("id", chosen[1]), zap.String("desc", chosen[2]))
 	idReq, err := strconv.Atoi(chosen[1])
 
 	if err != nil {
-		logger.Error("error happened", zap.Error(err))
+		h.logger.Error("error happened", zap.Error(err))
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
@@ -207,9 +218,9 @@ func callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 	withTimeout, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	resp, err := api.GetLink(withTimeout, req)
+	resp, err := h.api.GetLink(withTimeout, req)
 	if err != nil {
-		logger.Error("error happened", zap.Error(err))
+		h.logger.Error("error happened", zap.Error(err))
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
@@ -226,15 +237,13 @@ func callbackInlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 	})
 }
 
-func inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, links []*gen.Link) {
+func (h *Handlers) inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, links []*gen.Link) {
 	if len(links) == 0 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "No saved links 😞",
 		})
 	}
-
-	logger := getLoggerFromCtx(ctx)
 
 	inline := &models.InlineKeyboardMarkup{}
 	buttons := make([][]models.InlineKeyboardButton, 0, len(links))
@@ -258,24 +267,16 @@ func inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, lin
 		ReplyMarkup: inline,
 	})
 	if err != nil {
-		logger.Error("err while send message (keyboard)", zap.Error(err))
+		h.logger.Error("err while send message (keyboard)", zap.Error(err))
 	}
 }
 
-func helpHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("new message: "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+func (h *Handlers) helpHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("new message: "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   startMsg_EN,
+		ChatID:    update.Message.Chat.ID,
+		Text:      helpMsg_EN,
+		ParseMode: models.ParseModeMarkdown,
 	})
-}
-
-func getLoggerFromCtx(ctx context.Context) *zaplog.ZapLogger {
-	return ctx.Value(loggerKey("logger")).(*zaplog.ZapLogger)
-}
-
-func getApiFromCtx(ctx context.Context) *grpc.APIClient {
-	return ctx.Value(apiKey("api")).(*grpc.APIClient)
 }
