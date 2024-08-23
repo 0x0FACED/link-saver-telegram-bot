@@ -12,16 +12,12 @@ type TelegramBot struct {
 	bot       *bot.Bot
 	apiClient *api.APIClient
 	logger    *zaplog.ZapLogger
+	handlers  *Handlers
 }
 
 func New(token string, apiHost string) *TelegramBot {
 	logger := zaplog.New()
-	logger.Debug("Creating bot instance...")
-	bot, err := bot.New(token, opts()...)
-	if err != nil {
-		logger.Fatal("Can't create bot instance: " + err.Error())
-		return nil
-	}
+	logger.Debug("Creating api client...")
 
 	client, err := api.New(apiHost)
 	if err != nil {
@@ -29,38 +25,39 @@ func New(token string, apiHost string) *TelegramBot {
 		return nil
 	}
 
+	handlers := NewHandlers(client, logger)
+	bot, err := bot.New(token, opts(handlers.mainHandler, handlers.callbackInlineKbHandler)...)
+	if err != nil {
+		logger.Fatal("Can't create bot instance: " + err.Error())
+		return nil
+	}
+
 	return &TelegramBot{
 		bot:       bot,
 		apiClient: client,
 		logger:    logger,
+		handlers:  handlers,
 	}
 
 }
 
-func opts() []bot.Option {
+func opts(def bot.HandlerFunc, callback bot.HandlerFunc) []bot.Option {
 	return []bot.Option{
-		bot.WithDefaultHandler(mainHandler),
-		bot.WithCallbackQueryDataHandler("button", bot.MatchTypePrefix, callbackInlineKbHandler),
+		bot.WithDefaultHandler(def),
+		bot.WithCallbackQueryDataHandler("button", bot.MatchTypePrefix, callback),
 	}
 }
 
 func (b *TelegramBot) registerHandlers() {
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, startHandler)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypeExact, helpHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, b.handlers.startHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypeExact, b.handlers.helpHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, b.handlers.saveLinkHandlerHelper)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/get", bot.MatchTypeExact, b.handlers.getLinksHandlerHelper)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/list", bot.MatchTypeExact, b.handlers.getAllLinksHandler)
 }
 
 func (b *TelegramBot) Start() {
 	b.registerHandlers()
 
-	b.bot.Start(b.getCtx())
-}
-
-type loggerKey string
-type apiKey string
-
-func (b *TelegramBot) getCtx() context.Context {
-	ctx := context.WithValue(context.Background(), loggerKey("logger"), b.logger)
-	ctx = context.WithValue(ctx, apiKey("api"), b.apiClient)
-
-	return ctx
+	b.bot.Start(context.Background())
 }
