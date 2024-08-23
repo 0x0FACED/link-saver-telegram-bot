@@ -8,22 +8,20 @@ import (
 	"go.uber.org/zap"
 )
 
-func saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+func (h *Handlers) saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
 		Text:      saveMsg_EN,
-		ParseMode: models.ParseModeMarkdownV1,
+		ParseMode: models.ParseModeMarkdown,
 	})
 }
 
-func getLinksHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
-	logger := getLoggerFromCtx(ctx)
-	logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
+func (h *Handlers) getLinksHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
 		Text:      getMsg_EN,
-		ParseMode: models.ParseModeMarkdownV1,
+		ParseMode: models.ParseModeMarkdown,
 	})
 }
