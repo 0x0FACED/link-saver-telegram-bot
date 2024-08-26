@@ -26,7 +26,7 @@ func New(token string, apiHost string) *TelegramBot {
 	}
 
 	handlers := NewHandlers(client, logger)
-	bot, err := bot.New(token, opts(handlers.mainHandler, handlers.callbackInlineKbHandler)...)
+	bot, err := bot.New(token, opts(handlers.mainHandler, handlers.getCallback, handlers.delCallback)...)
 	if err != nil {
 		logger.Fatal("Can't create bot instance: " + err.Error())
 		return nil
@@ -41,10 +41,11 @@ func New(token string, apiHost string) *TelegramBot {
 
 }
 
-func opts(def bot.HandlerFunc, callback bot.HandlerFunc) []bot.Option {
+func opts(def bot.HandlerFunc, getCallback, delCallback bot.HandlerFunc) []bot.Option {
 	return []bot.Option{
 		bot.WithDefaultHandler(def),
-		bot.WithCallbackQueryDataHandler("button", bot.MatchTypePrefix, callback),
+		bot.WithCallbackQueryDataHandler("get", bot.MatchTypePrefix, getCallback),
+		bot.WithCallbackQueryDataHandler("del", bot.MatchTypePrefix, delCallback),
 	}
 }
 
