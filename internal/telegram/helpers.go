@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (h *Handlers) saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *EventProcessor) saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
 	h.logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
@@ -19,7 +19,7 @@ func (h *Handlers) saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, update
 	})
 }
 
-func (h *Handlers) getLinksHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *EventProcessor) getLinksHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
 	h.logger.Debug("start: "+update.Message.Text, zap.String("user", update.Message.Chat.Username))
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
@@ -28,7 +28,7 @@ func (h *Handlers) getLinksHandlerHelper(ctx context.Context, b *bot.Bot, update
 	})
 }
 
-func (h *Handlers) getAllLinks(ctx context.Context, b *bot.Bot, update *models.Update) []*gen.Link {
+func (h *EventProcessor) getAllLinks(ctx context.Context, b *bot.Bot, update *models.Update) []*gen.Link {
 	req := &gen.GetAllLinksRequest{
 		UserId: update.Message.From.ID,
 	}
