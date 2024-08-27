@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (h *Handlers) getCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *EventProcessor) getCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		ShowAlert:       false,
@@ -28,7 +28,10 @@ func (h *Handlers) getCallback(ctx context.Context, b *bot.Bot, update *models.U
 		return
 	}
 
-	h.logger.Info("request GetLink params", zap.String("id", chosen[1]), zap.String("desc", chosen[2]))
+	h.logger.Info("request GetLink params",
+		zap.String("id", chosen[1]),
+		zap.String("desc", chosen[2]),
+	)
 	idReq, err := strconv.Atoi(chosen[1])
 
 	if err != nil {
@@ -61,7 +64,7 @@ func (h *Handlers) getCallback(ctx context.Context, b *bot.Bot, update *models.U
 		return
 	}
 
-	text := fmt.Sprintf("*Description:* \n_%s_\n\n*Generated link:* `%s`", chosen[2], resp.GeneratedUrl)
+	text := fmt.Sprintf("*Description:* \n_%s_\n\n*Generated link:* \n%s", chosen[2], resp.GeneratedUrl)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		Text:      text,
@@ -69,7 +72,7 @@ func (h *Handlers) getCallback(ctx context.Context, b *bot.Bot, update *models.U
 	})
 }
 
-func (h *Handlers) delCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (h *EventProcessor) delCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
 		ShowAlert:       false,
@@ -84,7 +87,10 @@ func (h *Handlers) delCallback(ctx context.Context, b *bot.Bot, update *models.U
 		return
 	}
 
-	h.logger.Info("request GetLink params", zap.String("id", chosen[1]), zap.String("desc", chosen[2]))
+	h.logger.Info("request GetLink params",
+		zap.String("id", chosen[1]),
+		zap.String("desc", chosen[2]),
+	)
 	idReq, err := strconv.Atoi(chosen[1])
 
 	if err != nil {
