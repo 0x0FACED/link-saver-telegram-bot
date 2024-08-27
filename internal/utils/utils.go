@@ -1,10 +1,31 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"net/url"
+	"strings"
+	"unicode/utf8"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+)
+
+var (
+	MAX_DESC_SIZE = 32
+)
+
+var (
+	// if len(parts) != 3 (/save link desc -> must be)
+	ErrSaveMessageLen = errors.New("incorrect message format")
+	// is parts[1] != uri (incorrect link)
+	ErrNotUri = errors.New("incorrect url format")
+
+	ErrDescSize = errors.New("desc size must be less than 32")
+
+	ErrNotUTF8 = errors.New("there are characters not in utf8 encoding")
+
+	ErrEmptyMessage = errors.New("empty message")
 )
 
 func GetCodeMsgFromError(err error) string {
@@ -54,5 +75,27 @@ func GetCodeMsgFromError(err error) string {
 
 }
 func ValidateSaveMessage(msg string) error {
+	if msg == "" {
+		return ErrEmptyMessage
+	}
+	parts := strings.SplitN(msg, " ", 3)
+
+	if len(parts) != 3 {
+		return ErrSaveMessageLen
+	}
+
+	_, err := url.ParseRequestURI(parts[1])
+	if err != nil {
+		return ErrNotUri
+	}
+
+	if len(parts[2]) > MAX_DESC_SIZE {
+		return ErrDescSize
+	}
+
+	if !utf8.ValidString(parts[2]) {
+		return ErrNotUTF8
+	}
+
 	return nil
 }
