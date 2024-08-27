@@ -9,10 +9,10 @@ import (
 )
 
 type TelegramBot struct {
-	bot       *bot.Bot
-	apiClient *api.APIClient
-	logger    *zaplog.ZapLogger
-	handlers  *Handlers
+	bot            *bot.Bot
+	apiClient      *api.APIClient
+	logger         *zaplog.ZapLogger
+	eventProcessor *EventProcessor
 }
 
 func New(token string, apiHost string) *TelegramBot {
@@ -25,18 +25,18 @@ func New(token string, apiHost string) *TelegramBot {
 		return nil
 	}
 
-	handlers := NewHandlers(client, logger)
-	bot, err := bot.New(token, opts(handlers.mainHandler, handlers.getCallback, handlers.delCallback)...)
+	ep := NewEventProcessor(client, logger)
+	bot, err := bot.New(token, opts(ep.mainHandler, ep.getCallback, ep.delCallback)...)
 	if err != nil {
 		logger.Fatal("Can't create bot instance: " + err.Error())
 		return nil
 	}
 
 	return &TelegramBot{
-		bot:       bot,
-		apiClient: client,
-		logger:    logger,
-		handlers:  handlers,
+		bot:            bot,
+		apiClient:      client,
+		logger:         logger,
+		eventProcessor: ep,
 	}
 
 }
@@ -50,11 +50,11 @@ func opts(def bot.HandlerFunc, getCallback, delCallback bot.HandlerFunc) []bot.O
 }
 
 func (b *TelegramBot) registerHandlers() {
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, b.handlers.startHandler)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypeExact, b.handlers.helpHandler)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, b.handlers.saveLinkHandlerHelper)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/get", bot.MatchTypeExact, b.handlers.getLinksHandlerHelper)
-	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/list", bot.MatchTypeExact, b.handlers.getAllLinksHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, b.eventProcessor.startHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/help", bot.MatchTypeExact, b.eventProcessor.helpHandler)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/save", bot.MatchTypeExact, b.eventProcessor.saveLinkHandlerHelper)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/get", bot.MatchTypeExact, b.eventProcessor.getLinksHandlerHelper)
+	b.bot.RegisterHandler(bot.HandlerTypeMessageText, "/list", bot.MatchTypeExact, b.eventProcessor.getAllLinksHandler)
 }
 
 func (b *TelegramBot) Start() {
