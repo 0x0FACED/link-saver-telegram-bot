@@ -3,6 +3,7 @@ package telegram
 import (
 	"context"
 
+	"github.com/0x0FACED/link-saver-telegram-bot/config"
 	api "github.com/0x0FACED/link-saver-telegram-bot/internal/grpc"
 	"github.com/0x0FACED/link-saver-telegram-bot/internal/logger/zaplog"
 	"github.com/go-telegram/bot"
@@ -15,18 +16,18 @@ type TelegramBot struct {
 	eventProcessor *EventProcessor
 }
 
-func New(token string, apiHost string) *TelegramBot {
+func New(cfg *config.Config) *TelegramBot {
 	logger := zaplog.New()
 	logger.Debug("Creating api client...")
 
-	client, err := api.New(apiHost)
+	client, err := api.New(cfg.GRPC.Host, cfg.GRPC.Port)
 	if err != nil {
 		logger.Fatal("cant create conn with api: " + err.Error())
 		return nil
 	}
 
 	ep := NewEventProcessor(client, logger)
-	bot, err := bot.New(token, opts(ep.mainHandler, ep.getCallback, ep.delCallback)...)
+	bot, err := bot.New(cfg.Telegram.Token, opts(ep.mainHandler, ep.getCallback, ep.delCallback)...)
 	if err != nil {
 		logger.Fatal("Can't create bot instance: " + err.Error())
 		return nil
@@ -61,4 +62,5 @@ func (b *TelegramBot) Start() {
 	b.registerHandlers()
 
 	b.bot.Start(context.Background())
+	b.logger.Info("Bot started...")
 }
