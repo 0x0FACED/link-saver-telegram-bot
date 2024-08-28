@@ -12,8 +12,9 @@ type APIClient struct {
 	client gen.LinkServiceClient
 }
 
-func New(host string) (*APIClient, error) {
-	conn, err := grpc.NewClient(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func New(host string, port string) (*APIClient, error) {
+	addr := host + ":" + port
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		return nil, err
