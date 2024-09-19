@@ -12,6 +12,16 @@ type Config struct {
 }
 
 type GRPCConfig struct {
+	Link LinkServiceConfig
+	PDF  PDFServiceConfig
+}
+
+type LinkServiceConfig struct {
+	Host string
+	Port string
+}
+
+type PDFServiceConfig struct {
 	Host string
 	Port string
 }
@@ -28,8 +38,14 @@ func Load() (*Config, error) {
 
 	return &Config{
 		GRPC: GRPCConfig{
-			Host: os.Getenv("GRPC_HOST"),
-			Port: os.Getenv("GRPC_PORT"),
+			Link: LinkServiceConfig{
+				Host: os.Getenv("GRPC_HOST"),
+				Port: os.Getenv("GRPC_PORT"),
+			},
+			PDF: PDFServiceConfig{
+				Host: os.Getenv("PDF_HOST"),
+				Port: os.Getenv("PDF_PORT"),
+			},
 		},
 		Telegram: TelegramConfig{
 			Token: os.Getenv("BOT_TOKEN"),
