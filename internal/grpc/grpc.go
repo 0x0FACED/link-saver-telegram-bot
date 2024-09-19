@@ -3,6 +3,8 @@ package grpc
 import (
 	"context"
 
+	"github.com/0x0FACED/link-saver-telegram-bot/config"
+	pdf "github.com/0x0FACED/pdf-proto/pdf_service/gen"
 	"github.com/0x0FACED/proto-files/link_service/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -10,9 +12,28 @@ import (
 
 type APIClient struct {
 	client gen.LinkServiceClient
+
+	pdfClient pdf.PDFServiceClient
 }
 
-func New(host string, port string) (*APIClient, error) {
+func New(cfg config.Config) (*APIClient, error) {
+	linkService, err := linkService(cfg.GRPC.Link.Host, cfg.GRPC.Link.Port)
+	if err != nil {
+		return nil, err
+	}
+
+	pdfService, err := pdfService(cfg.GRPC.PDF.Host, cfg.GRPC.PDF.Port)
+	if err != nil {
+		return nil, err
+	}
+
+	return &APIClient{
+		client:    linkService,
+		pdfClient: pdfService,
+	}, nil
+}
+
+func linkService(host string, port string) (gen.LinkServiceClient, error) {
 	addr := host + ":" + port
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
@@ -20,9 +41,18 @@ func New(host string, port string) (*APIClient, error) {
 		return nil, err
 	}
 
-	return &APIClient{
-		client: gen.NewLinkServiceClient(conn),
-	}, nil
+	return gen.NewLinkServiceClient(conn), nil
+}
+
+func pdfService(host string, port string) (pdf.PDFServiceClient, error) {
+	addr := host + ":" + port
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return pdf.NewPDFServiceClient(conn), nil
 }
 
 func (a APIClient) GetLink(ctx context.Context, req *gen.GetLinkRequest) (*gen.GetLinkResponse, error) {
