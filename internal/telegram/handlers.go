@@ -43,6 +43,10 @@ func (h *EventProcessor) initHandlers() {
 	h.handlers["/save"] = h.saveLinkHandler
 	h.handlers["/delete"] = h.deleteLinkHandler
 	h.handlers["/del"] = h.getAllLinksHandlerDelete
+	// TODO: change handlers
+	h.handlers["/savepdf"] = h.savePDFHandler
+	h.handlers["/getpdf"] = h.getAllLinksHandlerDelete
+	h.handlers["/delpdf"] = h.getAllLinksHandlerDelete
 }
 
 func (h *EventProcessor) mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -184,6 +188,35 @@ func (h *EventProcessor) getAllLinksHandler(ctx context.Context, b *bot.Bot, upd
 	h.logger.Debug("getAllLinksHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 	links := h.getAllLinks(ctx, b, update)
 	h.inlineKbHandler(ctx, b, update, links, "get")
+}
+
+func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("savePDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+
+	// Должен быть формат: /savepdf <link> <description> (description - название)
+	// Но описание опционально. Если его не указать, то сгенерим просто свое описание.
+	// длина описания не должна быть больше 16 символов (ну условно, на первое время)
+
+	// Проверяем структуру сообщения
+	// Если гуд - выполняем запрос к pdf-api
+	// Если нет, то возвращаем мессадж юзеру, что он что-то не так указал
+	// pdf-api нам вернет []byte файл, то есть надо будет конвертировать массив байтов в pdf файл
+	// крч создать pdf файл из массива байтов
+
+	// ДОБАВИТЬ СЖАТИЕ С ДВУХ СТОРОН ДЛЯ ЭКОНОМИИ МЕСТА/ТРАФИКА
+}
+
+func (h *EventProcessor) getPDFHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("getPDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+
+	// Должен быть формат: /getpdf <description> (description - название)
+	// Я не буду добавлять inline клавиатуру здесь, будет просто команда /getpdf с описанием и все
+
+	// Делаем запрос к сервису, чтобы он вернул нам pdf в виде массива байтов
+	// Если у сервиса нет контента, он вернет ошибку
+	// Если все гуд, то вернется массив байтов, котоырй мы здесь преобразуем в pdf
+
+	// ДОБАВИТЬ СЖАТИЕ С ДВУХ СТОРОН ДЛЯ ЭКОНОМИИ МЕСТА/ТРАФИКА
 }
 
 func (h *EventProcessor) inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, links []*gen.Link, tag string) {
