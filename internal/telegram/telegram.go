@@ -20,7 +20,7 @@ func New(cfg *config.Config) *TelegramBot {
 	logger := zaplog.New()
 	logger.Debug("Creating api client...")
 
-	client, err := api.New(cfg.GRPC.Host, cfg.GRPC.Port)
+	client, err := api.New(*cfg)
 	if err != nil {
 		logger.Fatal("cant create conn with api: " + err.Error())
 		return nil
