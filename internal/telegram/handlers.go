@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/0x0FACED/link-saver-telegram-bot/internal/grpc"
 	"github.com/0x0FACED/link-saver-telegram-bot/internal/logger/zaplog"
 	"github.com/0x0FACED/link-saver-telegram-bot/internal/utils"
+	pdf "github.com/0x0FACED/pdf-proto/pdf_service/gen"
 	"github.com/0x0FACED/proto-files/link_service/gen"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -38,15 +40,17 @@ func NewEventProcessor(api *grpc.APIClient, logger *zaplog.ZapLogger) *EventProc
 func (h *EventProcessor) initHandlers() {
 	h.handlers["/start"] = h.startHandler
 	h.handlers["/help"] = h.helpHandler
+
 	h.handlers["/get"] = h.getLinksHandler
 	h.handlers["/list"] = h.getAllLinksHandler
 	h.handlers["/save"] = h.saveLinkHandler
 	h.handlers["/delete"] = h.deleteLinkHandler
 	h.handlers["/del"] = h.getAllLinksHandlerDelete
-	// TODO: change handlers
+
 	h.handlers["/savepdf"] = h.savePDFHandler
-	h.handlers["/getpdf"] = h.getAllLinksHandlerDelete
-	h.handlers["/delpdf"] = h.getAllLinksHandlerDelete
+	h.handlers["/getpdf"] = h.getPDFHandler
+	h.handlers["/delpdf"] = h.deletePDFHandler
+	h.handlers["/flushpdfs"] = h.deleteAllPDFSHandler
 }
 
 func (h *EventProcessor) mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -193,9 +197,47 @@ func (h *EventProcessor) getAllLinksHandler(ctx context.Context, b *bot.Bot, upd
 func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	h.logger.Debug("savePDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
-	// Должен быть формат: /savepdf <link> <description> (description - название)
-	// Но описание опционально. Если его не указать, то сгенерим просто свое описание.
+	msg := strings.SplitN(update.Message.Text, " ", 3)
+	if len(msg) != 3 {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Incorrect message format",
+		})
+		return
+	}
+	// Должен быть формат: /savepdf <link> <description> <scale> (description - название)
+	// пока что без scale
 	// длина описания не должна быть больше 16 символов (ну условно, на первое время)
+	req := &pdf.ConvertToPDFRequest{
+		UserId:      update.Message.From.ID,
+		OriginalUrl: msg[1],
+		Description: msg[2],
+		Scale:       0.7, // на время
+	}
+	resp, err := h.api.ConvertToPDF(ctx, req)
+	if err != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Error! Try again." + err.Error(),
+		})
+		return
+	}
+
+	decompressed, err := decompressPDF(resp.PdfData)
+	if err != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Error! Try again." + err.Error(),
+		})
+		return
+	}
+	b.SendDocument(ctx, &bot.SendDocumentParams{
+		ChatID: update.Message.Chat.ID,
+		Document: &models.InputFileUpload{
+			Data:     bytes.NewReader(decompressed),
+			Filename: resp.Filename,
+		},
+	})
 
 	// Проверяем структуру сообщения
 	// Если гуд - выполняем запрос к pdf-api
@@ -217,6 +259,18 @@ func (h *EventProcessor) getPDFHandler(ctx context.Context, b *bot.Bot, update *
 	// Если все гуд, то вернется массив байтов, котоырй мы здесь преобразуем в pdf
 
 	// ДОБАВИТЬ СЖАТИЕ С ДВУХ СТОРОН ДЛЯ ЭКОНОМИИ МЕСТА/ТРАФИКА
+}
+
+// Удаляем пдф по описанию (принцип схож с /del для ссылок, тоже будем возвращать список и давать юзеру выбрать, че удалить)
+func (h *EventProcessor) deletePDFHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("getPDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+
+}
+
+// Удаляем просто по команде все PDF из памяти
+func (h *EventProcessor) deleteAllPDFSHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	h.logger.Debug("getPDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
+
 }
 
 func (h *EventProcessor) inlineKbHandler(ctx context.Context, b *bot.Bot, update *models.Update, links []*gen.Link, tag string) {
