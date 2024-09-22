@@ -1,7 +1,10 @@
 package telegram
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"io"
 	"time"
 
 	"github.com/0x0FACED/proto-files/link_service/gen"
@@ -50,4 +53,22 @@ func (h *EventProcessor) getAllLinks(ctx context.Context, b *bot.Bot, update *mo
 	h.logger.Debug("got links: ", zap.Any("links", resp.Links))
 
 	return resp.Links
+}
+
+func decompressPDF(compressedData []byte) ([]byte, error) {
+	buffer := bytes.NewBuffer(compressedData)
+
+	reader, err := gzip.NewReader(buffer)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	var decompressedData bytes.Buffer
+	_, err = io.Copy(&decompressedData, reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return decompressedData.Bytes(), nil
 }
