@@ -97,3 +97,34 @@ func (a APIClient) DeleteLink(ctx context.Context, req *gen.DeleteLinkRequest) (
 	}
 	return resp, nil
 }
+
+// PDF ====================================================
+
+func (a APIClient) ConvertToPDF(ctx context.Context, req *pdf.ConvertToPDFRequest) (*pdf.ConvertToPDFResponse, error) {
+	resp, err := a.pdfClient.ConvertToPDF(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+func (a APIClient) GetSavedPDF(ctx context.Context, req *pdf.GetSavedPDFRequest) (*pdf.GetSavedPDFResponse, error) {
+	resp, err := a.pdfClient.GetSavedPDF(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+func (a APIClient) DeletePDF(ctx context.Context, req *pdf.DeletePDFRequest) (*pdf.DeletePDFResponse, error) {
+	resp, err := a.pdfClient.DeletePDF(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+func (a APIClient) DeleteAllPDF(ctx context.Context, req *pdf.DeleteAllPDFRequest) (*pdf.DeleteAllPDFResponse, error) {
+	resp, err := a.pdfClient.DeleteAllPDF(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
