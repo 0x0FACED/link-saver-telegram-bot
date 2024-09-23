@@ -160,7 +160,7 @@ var (
 	Remember this name\, as future searches will be performed using the name you provided\.
 
 	_Example:_
-	*/save https://en\.wikipedia\.org/wiki/Kangaroo kangaroo wiki info*
+	*/savepdf https://en\.wikipedia\.org/wiki/Kangaroo kangaroo wiki info*
 
 	Next\, the system will start processing the link and converting it to a pdf\!
 
