@@ -47,6 +47,7 @@ func (h *EventProcessor) initHandlers() {
 	h.handlers["/delete"] = h.deleteLinkHandler
 	h.handlers["/del"] = h.getAllLinksHandlerDelete
 
+	h.handlers["/pdf"] = h.savePDFHandlerHelper
 	h.handlers["/savepdf"] = h.savePDFHandler
 	h.handlers["/getpdf"] = h.getPDFHandler
 	h.handlers["/delpdf"] = h.deletePDFHandler
@@ -214,6 +215,13 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 		Description: msg[2],
 		Scale:       0.7, // на время
 	}
+
+	// Отправим сообщение, мол этот процесс может занять длительное время, ожидайте
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   "This process can take a long time. Please expect 🙏🥺",
+	})
+
 	resp, err := h.api.ConvertToPDF(ctx, req)
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
