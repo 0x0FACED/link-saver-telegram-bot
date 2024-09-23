@@ -106,6 +106,11 @@ var (
 	Example\: */delete useful link*
 	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */delete* 👈
 
+	5\. 🗑 *NEW. Convert link to PDF*\:
+	Use the command\: */savepdf \<link\>*
+	Example\: */savepdf https\://example\.com*
+	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */pdf* 👈
+
 	I hope this helps you to use this bot 😉\!
 	`
 
@@ -147,7 +152,7 @@ var (
 
 	savePDFMsg_EN = `
 	*📥 So\, bot can save page content as pdf file\! 📥*
-	You need to type the following command: */save \<link\> \<description\>*
+	You need to type the following command: */savepdf \<link\>*
 
 	_Examples of links:_
 	https://github\.com/
@@ -160,7 +165,7 @@ var (
 	Remember this name\, as future searches will be performed using the name you provided\.
 
 	_Example:_
-	*/savepdf https://en\.wikipedia\.org/wiki/Kangaroo kangaroo wiki info*
+	*/savepdf https://en\.wikipedia\.org/wiki/Kangaroo*
 
 	Next\, the system will start processing the link and converting it to a pdf\!
 

@@ -199,21 +199,21 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 	h.logger.Debug("savePDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	msg := strings.SplitN(update.Message.Text, " ", 3)
-	if len(msg) != 3 {
+	if len(msg) < 2 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Incorrect message format",
 		})
 		return
 	}
-	// Должен быть формат: /savepdf <link> <description> <scale> (description - название)
-	// пока что без scale
+	// Должен быть формат: /savepdf <link> <description> <scale> (description - название) (ПОТОМ)
+	// пока что без scale и description
 	// длина описания не должна быть больше 16 символов (ну условно, на первое время)
 	req := &pdf.ConvertToPDFRequest{
 		UserId:      update.Message.From.ID,
 		OriginalUrl: msg[1],
-		Description: msg[2],
-		Scale:       0.7, // на время
+		Description: "tmp", // на время, пока не добавлю хранение в редисе у сервиса
+		Scale:       0.7,   // на время
 	}
 
 	// Отправим сообщение, мол этот процесс может занять длительное время, ожидайте
