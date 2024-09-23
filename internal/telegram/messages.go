@@ -76,6 +76,7 @@ var (
 	*2\.* 📤 *Return generated link by description* \(press */get* to see more info\)
 	*3\.* 🗑 *Delete saved links* \(press */delete* to see more info\)
 	*4\.* 🆘 *Help* \(press */help* to see more info\)
+	*4\.* 📄 *Save page as .pdf file!* \(press */pdf* to see more info\)
 	`
 	helpMsg_EN = `
 	This bot can help you with the following\:
@@ -142,5 +143,27 @@ var (
 	*/get info*
 	\.\.\.
 	etc
+	`
+
+	savePDFMsg_EN = `
+	*📥 So\, bot can save page content as pdf file\! 📥*
+	You need to type the following command: */save \<link\> \<description\>*
+
+	_Examples of links:_
+	https://github\.com/
+	https://translate\.yandex\.com/
+	https://habr\.com/en/articles/
+
+	In general\, any link that leads to a specific page\.
+	After the link, give a *name for the link* separated by a space\.
+	For example\, if you want to save an article about kangaroos\, name it accordingly\: *kangaroo*\.
+	Remember this name\, as future searches will be performed using the name you provided\.
+
+	_Example:_
+	*/save https://en\.wikipedia\.org/wiki/Kangaroo kangaroo wiki info*
+
+	Next\, the system will start processing the link and converting it to a pdf\!
+
+	*Remember\! This process can take a long time\!*
 	`
 )
