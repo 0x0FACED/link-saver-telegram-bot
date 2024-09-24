@@ -16,8 +16,6 @@ var (
 )
 
 var (
-	// if len(parts) != 3 (/save link desc -> must be)
-	ErrSaveMessageLen = errors.New("incorrect message format")
 	// is parts[1] != uri (incorrect link)
 	ErrNotUri = errors.New("incorrect url format")
 
@@ -26,6 +24,8 @@ var (
 	ErrNotUTF8 = errors.New("there are characters not in utf8 encoding")
 
 	ErrEmptyMessage = errors.New("empty message")
+
+	ErrMessageFormat = errors.New("incorrect message format")
 )
 
 func GetCodeMsgFromError(err error) string {
@@ -81,7 +81,7 @@ func ValidateSaveMessage(msg string) error {
 	parts := strings.SplitN(msg, " ", 3)
 
 	if len(parts) != 3 {
-		return ErrSaveMessageLen
+		return ErrMessageFormat
 	}
 
 	_, err := url.ParseRequestURI(parts[1])

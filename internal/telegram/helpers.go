@@ -5,8 +5,10 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
+	"strings"
 	"time"
 
+	"github.com/0x0FACED/link-saver-telegram-bot/internal/utils"
 	"github.com/0x0FACED/proto-files/link_service/gen"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -78,4 +80,12 @@ func decompressPDF(compressedData []byte) ([]byte, error) {
 	}
 
 	return decompressedData.Bytes(), nil
+}
+
+func parseMessage(text string, times int) ([]string, error) {
+	msgs := strings.SplitN(text, " ", times)
+	if len(msgs) != times {
+		return []string{}, utils.ErrMessageFormat
+	}
+	return msgs, nil
 }

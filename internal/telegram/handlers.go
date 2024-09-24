@@ -145,12 +145,12 @@ func (h *EventProcessor) deleteLinkHandler(ctx context.Context, b *bot.Bot, upda
 func (h *EventProcessor) getLinksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	h.logger.Debug("getLinksHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
-	msg := strings.SplitN(update.Message.Text, " ", 2)
-	// msg[0] -> /get command
-	// msg[1] -> description
-
-	if len(msg) != 2 {
-		h.getLinksHandlerHelper(ctx, b, update)
+	msg, err := parseMessage(update.Message.Text, 2)
+	if err != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "Incorrect message format",
+		})
 		return
 	}
 
@@ -198,8 +198,8 @@ func (h *EventProcessor) getAllLinksHandler(ctx context.Context, b *bot.Bot, upd
 func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	h.logger.Debug("savePDFHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
-	msg := strings.SplitN(update.Message.Text, " ", 3)
-	if len(msg) < 2 {
+	msg, err := parseMessage(update.Message.Text, 2)
+	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Incorrect message format",
@@ -247,13 +247,6 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 		},
 	})
 
-	// Проверяем структуру сообщения
-	// Если гуд - выполняем запрос к pdf-api
-	// Если нет, то возвращаем мессадж юзеру, что он что-то не так указал
-	// pdf-api нам вернет []byte файл, то есть надо будет конвертировать массив байтов в pdf файл
-	// крч создать pdf файл из массива байтов
-
-	// ДОБАВИТЬ СЖАТИЕ С ДВУХ СТОРОН ДЛЯ ЭКОНОМИИ МЕСТА/ТРАФИКА
 }
 
 func (h *EventProcessor) getPDFHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
