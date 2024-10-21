@@ -83,7 +83,7 @@ func (h *EventProcessor) startHandler(ctx context.Context, b *bot.Bot, update *m
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
-		Text:      startMsg_EN,
+		Text:      startMsg_RU,
 		ParseMode: models.ParseModeMarkdown,
 	})
 }
@@ -315,7 +315,7 @@ func (h *EventProcessor) helpHandler(ctx context.Context, b *bot.Bot, update *mo
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
-		Text:      helpMsg_EN,
+		Text:      helpMsg_RU,
 		ParseMode: models.ParseModeMarkdown,
 	})
 }
