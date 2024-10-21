@@ -81,12 +81,12 @@ var (
 	helpMsg_EN = `
 	This bot can help you with the following\:
 
-	1\. 📥 *Save links*\:
+	1\. 📥 *Save links* \(*TEMPORARILY UNAVAILABLE*\)\:
 	Use the command\: */save \<link\> \<description\>*
 	Example\: */save https\://example\.com useful link*
 	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */save* 👈
 
-	2\. 📤 *Retrieve saved links* by description\:
+	2\. 📤 *Retrieve saved links* by description \(*TEMPORARILY UNAVAILABLE*\) \:
 	Use the command\: */get \<description\>*
 	Example\: */get useful link*
 	The bot will return a list of links that match the description \(if any matches are found\)\.
@@ -94,19 +94,19 @@ var (
 	Example\: *https\://serverhost\.com/gen/your_telegram_id/generatedlink*
 	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */get* 👈
 
-	3\. 📤📤📤 *Retrieve ALL saved links*\:
+	3\. 📤📤📤 *Retrieve ALL saved links* \(*TEMPORARILY UNAVAILABLE*\) \:
 	Use the command\: */list*
 	The bot will return a list of links you have ever saved\.
 	When you select one of the links\, the bot will return a generated new one\.
 	Example\: *https\://serverhost\.com/gen/your_telegram_id/generatedlink*
 	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */list* 👈
 
-	4\. 🗑 *Delete saved links*\:
+	4\. 🗑 *Delete saved links* \(*TEMPORARILY UNAVAILABLE*\) \:
 	Use the command\: */delete \<description\>*
 	Example\: */delete useful link*
 	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */delete* 👈
 
-	5\. 🗑 *NEW. Convert link to PDF*\:
+	5\. 🗑 *NEW. Convert link to PDF* \(🔥*AVAILABLE*🔥\) \:
 	Use the command\: */savepdf \<link\>*
 	Example\: */savepdf https\://example\.com*
 	_P\.S\. To get detailed instructions on how this command works\, just click on it_ 👉 */pdf* 👈

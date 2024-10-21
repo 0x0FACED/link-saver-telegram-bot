@@ -41,17 +41,17 @@ func (h *EventProcessor) initHandlers() {
 	h.handlers["/start"] = h.startHandler
 	h.handlers["/help"] = h.helpHandler
 
-	h.handlers["/get"] = h.getLinksHandler
-	h.handlers["/list"] = h.getAllLinksHandler
-	h.handlers["/save"] = h.saveLinkHandler
-	h.handlers["/delete"] = h.deleteLinkHandler
-	h.handlers["/del"] = h.getAllLinksHandlerDelete
+	//h.handlers["/get"] = h.getLinksHandler
+	//h.handlers["/list"] = h.getAllLinksHandler
+	//h.handlers["/save"] = h.saveLinkHandler
+	//h.handlers["/delete"] = h.deleteLinkHandler
+	//h.handlers["/del"] = h.getAllLinksHandlerDelete
 
 	h.handlers["/pdf"] = h.savePDFHandlerHelper
 	h.handlers["/savepdf"] = h.savePDFHandler
-	h.handlers["/getpdf"] = h.getPDFHandler
-	h.handlers["/delpdf"] = h.deletePDFHandler
-	h.handlers["/flushpdfs"] = h.deleteAllPDFSHandler
+	//h.handlers["/getpdf"] = h.getPDFHandler
+	//h.handlers["/delpdf"] = h.deletePDFHandler
+	//h.handlers["/flushpdfs"] = h.deleteAllPDFSHandler
 }
 
 func (h *EventProcessor) mainHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
