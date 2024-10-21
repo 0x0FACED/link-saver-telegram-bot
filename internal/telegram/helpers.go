@@ -26,7 +26,7 @@ func (h *EventProcessor) saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, 
 func (h *EventProcessor) savePDFHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
-		Text:      savePDFMsg_EN,
+		Text:      savePDFMsg_RU,
 		ParseMode: models.ParseModeMarkdown,
 	})
 }
