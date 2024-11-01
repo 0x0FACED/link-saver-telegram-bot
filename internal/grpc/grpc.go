@@ -44,9 +44,15 @@ func linkService(host string, port string) (gen.LinkServiceClient, error) {
 	return gen.NewLinkServiceClient(conn), nil
 }
 
+const maxMsgSize = 15 * 1024 * 1024 // 15mb
+
 func pdfService(host string, port string) (pdf.PDFServiceClient, error) {
 	addr := host + ":" + port
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(
+		addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMsgSize)),
+	)
 
 	if err != nil {
 		return nil, err
