@@ -10,6 +10,26 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type API interface {
+	LinkService
+	PDFService
+}
+
+type LinkService interface {
+	GetLink(ctx context.Context, req *gen.GetLinkRequest) (*gen.GetLinkResponse, error)
+	GetLinks(ctx context.Context, req *gen.GetLinksRequest) (*gen.GetLinksResponse, error)
+	GetAllLinks(ctx context.Context, req *gen.GetAllLinksRequest) (*gen.GetAllLinksResponse, error)
+	SaveLink(ctx context.Context, req *gen.SaveLinkRequest) (*gen.SaveLinkResponse, error)
+	DeleteLink(ctx context.Context, req *gen.DeleteLinkRequest) (*gen.DeleteLinkResponse, error)
+}
+
+type PDFService interface {
+	ConvertToPDF(ctx context.Context, req *pdf.ConvertToPDFRequest) (*pdf.ConvertToPDFResponse, error)
+	GetSavedPDF(ctx context.Context, req *pdf.GetSavedPDFRequest) (*pdf.GetSavedPDFResponse, error)
+	DeletePDF(ctx context.Context, req *pdf.DeletePDFRequest) (*pdf.DeletePDFResponse, error)
+	DeleteAllPDF(ctx context.Context, req *pdf.DeleteAllPDFRequest) (*pdf.DeleteAllPDFResponse, error)
+}
+
 type APIClient struct {
 	client gen.LinkServiceClient
 
