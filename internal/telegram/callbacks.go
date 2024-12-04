@@ -23,7 +23,7 @@ func (h *EventProcessor) getCallback(ctx context.Context, b *bot.Bot, update *mo
 	if len(chosen) != 3 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Text:   "Some error, try again.",
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -39,7 +39,7 @@ func (h *EventProcessor) getCallback(ctx context.Context, b *bot.Bot, update *mo
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -59,12 +59,12 @@ func (h *EventProcessor) getCallback(ctx context.Context, b *bot.Bot, update *mo
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже." + err.Error(),
 		})
 		return
 	}
 
-	text := fmt.Sprintf("*Description:* \n_%s_\n\n*Generated link:* \n%s", chosen[2], resp.GeneratedUrl)
+	text := fmt.Sprintf("*Описание:* \n_%s_\n\n*Сгенерированная ссылка:* \n%s", chosen[2], resp.GeneratedUrl)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		Text:      text,
@@ -82,7 +82,7 @@ func (h *EventProcessor) delCallback(ctx context.Context, b *bot.Bot, update *mo
 	if len(chosen) != 3 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Text:   "Some error, try again.",
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -98,7 +98,7 @@ func (h *EventProcessor) delCallback(ctx context.Context, b *bot.Bot, update *mo
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -116,12 +116,12 @@ func (h *EventProcessor) delCallback(ctx context.Context, b *bot.Bot, update *mo
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
 
-	text := fmt.Sprintf("*Description:* \n_%s_\n\n*Message:* `%s`", chosen[2], resp.Message)
+	text := fmt.Sprintf("*Описание:* \n_%s_\n\n*Сообщение:* `%s`", chosen[2], resp.Message)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		Text:      text,

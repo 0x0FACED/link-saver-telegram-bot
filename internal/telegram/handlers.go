@@ -92,7 +92,7 @@ func (h *EventProcessor) saveLinkHandler(ctx context.Context, b *bot.Bot, update
 	h.logger.Debug("saveLinkHandler(): "+update.Message.Text, zap.Int64("user", update.Message.From.ID))
 
 	if err := utils.ValidateSaveMessage(update.Message.Text); err != nil {
-		msg := err.Error() + ". Click on /save to see help on how this command works"
+		msg := "Неверный формат сообщения. Наждите на /save, чтобы узнать, как работает команда"
 
 		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
@@ -132,7 +132,7 @@ func (h *EventProcessor) saveLinkHandler(ctx context.Context, b *bot.Bot, update
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "Successfully Saved",
+		Text:   "Успешно сохранено",
 	})
 }
 
@@ -149,7 +149,7 @@ func (h *EventProcessor) getLinksHandler(ctx context.Context, b *bot.Bot, update
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Incorrect message format",
+			Text:   "Неверный формат сообщения",
 		})
 		return
 	}
@@ -172,7 +172,7 @@ func (h *EventProcessor) getLinksHandler(ctx context.Context, b *bot.Bot, update
 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -202,7 +202,7 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Incorrect message format",
+			Text:   "Неверный формат сообщения",
 		})
 		return
 	}
@@ -219,14 +219,14 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 	// Отправим сообщение, мол этот процесс может занять длительное время, ожидайте
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "This process can take a long time. Please expect 🙏🥺",
+		Text:   "Этот процесс может занять какое-то время. Пожалуйста, подождите🙏🥺",
 	})
 
 	resp, err := h.api.ConvertToPDF(ctx, req)
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -235,7 +235,7 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Error! Try again." + err.Error(),
+			Text:   "Ошибка, попробуйте позже.",
 		})
 		return
 	}
@@ -278,7 +278,7 @@ func (h *EventProcessor) inlineKbHandler(ctx context.Context, b *bot.Bot, update
 	if len(links) == 0 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "No saved links 😞",
+			Text:   "Нет сохраненных ссылок 😞",
 		})
 
 		return
