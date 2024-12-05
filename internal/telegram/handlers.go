@@ -266,7 +266,7 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 		MessageID: waitMsg.ID,
 		Media: &models.InputMediaDocument{
 			Media:           filepath,
-			Caption:         "Ваш файл!",
+			Caption:         "Ваш файл! Наслаждайтесь чтением ❤️",
 			MediaAttachment: bytes.NewBuffer(decompressed),
 		},
 	})
