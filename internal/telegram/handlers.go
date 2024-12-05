@@ -220,6 +220,10 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 	waitMsg, _ := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
 		Text:   "Этот процесс может занять какое-то время. Пожалуйста, подождите🙏🥺",
+		ReplyParameters: &models.ReplyParameters{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: update.Message.ID,
+		},
 	})
 
 	resp, err := h.api.ConvertToPDF(ctx, req)
@@ -227,6 +231,10 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Ошибка, попробуйте позже.",
+			ReplyParameters: &models.ReplyParameters{
+				ChatID:    update.Message.Chat.ID,
+				MessageID: update.Message.ID,
+			},
 		})
 		return
 	}
@@ -246,37 +254,35 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 	//	MessageID: waitMsg.ID,
 	//})
 
-	_, _ = b.EditMessageText(ctx, &bot.EditMessageTextParams{
+	waitMsg, _ = b.EditMessageText(ctx, &bot.EditMessageTextParams{
 		ChatID:    update.Message.Chat.ID,
 		MessageID: waitMsg.ID,
 		Text:      "Файл готов, отправляем 📥",
 	})
 
-	/*_, err = b.EditMessageMedia(ctx, &bot.EditMessageMediaParams{
+	filepath := fmt.Sprintf("attach://%s", resp.Filename)
+	_, err = b.EditMessageMedia(ctx, &bot.EditMessageMediaParams{
 		ChatID:    update.Message.Chat.ID,
-		MessageID: updMsg.ID,
+		MessageID: waitMsg.ID,
 		Media: &models.InputMediaDocument{
-			Media: "attach://file", // Ссылка на файл в multipart/form-data
-		},
-		Attachments: map[string]models.InputFile{
-			"file": &models.InputFileUpload{
-				Data:     bytes.NewReader(decompressed),
-				Filename: filename,
-			},
-		},
-	})*/
-
-	b.SendDocument(ctx, &bot.SendDocumentParams{
-		ChatID: update.Message.Chat.ID,
-		ReplyParameters: &models.ReplyParameters{
-			ChatID:    update.Message.Chat.ID,
-			MessageID: update.Message.ID,
-		},
-		Document: &models.InputFileUpload{
-			Data:     bytes.NewReader(decompressed),
-			Filename: resp.Filename,
+			Media:           filepath,
+			Caption:         "Ваш файл!",
+			MediaAttachment: bytes.NewBuffer(decompressed),
 		},
 	})
+	if err != nil {
+		b.SendDocument(ctx, &bot.SendDocumentParams{
+			ChatID: update.Message.Chat.ID,
+			ReplyParameters: &models.ReplyParameters{
+				ChatID:    update.Message.Chat.ID,
+				MessageID: update.Message.ID,
+			},
+			Document: &models.InputFileUpload{
+				Data:     bytes.NewReader(decompressed),
+				Filename: resp.Filename,
+			},
+		})
+	}
 
 	/*b.SendDocument(ctx, &bot.SendDocumentParams{
 		ChatID: update.Message.Chat.ID,
