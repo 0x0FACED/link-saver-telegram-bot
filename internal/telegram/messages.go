@@ -23,7 +23,13 @@ _Со всеми вопросами \- *\@pick1e\_morty*_
 
 	savePDFMsg_RU = `
 Чтобы сохранить ссылку в PDF файл, просто введите */savepdf \<здесь вставьте ссылку\>*
-Например\, */savepdf https://en\.wikipedia\.org/wiki/Wiki*
+Например\, */savepdf https://en\.wikipedia\.org/wiki/Wiki*\.
+
+Или же вы можете просто отправить ссылку\!
+Например\, *https://en\.wikipedia\.org/wiki/Wiki*\.
+
+*ВАЖНО*\! Ссылка должна иметь протокол *http* или *https*\!
+То есть ссылки по типу en\.wikipedia\.org/wiki/Wiki НЕ РАБОТАЮТ\!
 _Со всеми вопросами \- *\@pick1e\_morty*_
 	`
 

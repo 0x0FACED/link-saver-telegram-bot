@@ -230,6 +230,7 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 				},
 			})
 		}
+		return
 	}
 	// Должен быть формат: /savepdf <link> <description> <scale> (description - название) (ПОТОМ)
 	// пока что без scale и description
