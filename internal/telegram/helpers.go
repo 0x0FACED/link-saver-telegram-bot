@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"io"
+	"net/url"
 	"strings"
 	"time"
 
@@ -13,6 +15,11 @@ import (
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 	"go.uber.org/zap"
+)
+
+var (
+	ErrInvalidURL      = errors.New("invalid url")
+	ErrInvalidProtocol = errors.New("invalid protocol")
 )
 
 func (h *EventProcessor) saveLinkHandlerHelper(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -88,4 +95,25 @@ func parseMessage(text string, times int) ([]string, error) {
 		return []string{}, utils.ErrMessageFormat
 	}
 	return msgs, nil
+}
+
+func ValidateAndFixURL(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil || parsedURL.Host == "" {
+		return "", ErrInvalidURL
+	}
+
+	if parsedURL.Scheme == "" {
+		rawURL = "https://" + rawURL
+		parsedURL, err = url.Parse(rawURL)
+		if err != nil || parsedURL.Host == "" {
+			return "", ErrInvalidURL
+		}
+	}
+
+	if !strings.HasPrefix(parsedURL.Scheme, "http") {
+		return "", ErrInvalidProtocol
+	}
+
+	return parsedURL.String(), nil
 }

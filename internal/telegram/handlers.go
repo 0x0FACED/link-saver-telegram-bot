@@ -3,6 +3,7 @@ package telegram
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -206,12 +207,36 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 		})
 		return
 	}
+
+	url, err := ValidateAndFixURL(msg[1])
+	if err != nil {
+		if errors.Is(err, ErrInvalidURL) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "Неверный формат ссылки. Введите /pdf для получения справки.",
+				ReplyParameters: &models.ReplyParameters{
+					ChatID:    update.Message.Chat.ID,
+					MessageID: update.Message.ID,
+				},
+			})
+		}
+		if errors.Is(err, ErrInvalidProtocol) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "Поддерживаются только 'http' и 'https' протоколы.",
+				ReplyParameters: &models.ReplyParameters{
+					ChatID:    update.Message.Chat.ID,
+					MessageID: update.Message.ID,
+				},
+			})
+		}
+	}
 	// Должен быть формат: /savepdf <link> <description> <scale> (description - название) (ПОТОМ)
 	// пока что без scale и description
 	// длина описания не должна быть больше 16 символов (ну условно, на первое время)
 	req := &pdf.ConvertToPDFRequest{
 		UserId:      update.Message.From.ID,
-		OriginalUrl: msg[1],
+		OriginalUrl: url,
 		Description: "tmp", // на время, пока не добавлю хранение в редисе у сервиса
 		Scale:       0.7,   // на время
 	}
