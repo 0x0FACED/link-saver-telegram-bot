@@ -29,7 +29,8 @@ _Со всеми вопросами \- *\@pick1e\_morty*_
 Например\, *https://en\.wikipedia\.org/wiki/Wiki*\.
 
 *ВАЖНО*\! Ссылка должна иметь протокол *http* или *https*\!
-То есть ссылки по типу en\.wikipedia\.org/wiki/Wiki НЕ РАБОТАЮТ\!
+То есть ссылки по типу en\.wikipedia\.org/wiki/Wiki *НЕ РАБОТАЮТ*\!
+
 _Со всеми вопросами \- *\@pick1e\_morty*_
 	`
 

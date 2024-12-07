@@ -71,7 +71,13 @@ func (h *EventProcessor) mainHandler(ctx context.Context, b *bot.Bot, update *mo
 	if handler, ok := h.handlers[msgParts[0]]; ok {
 		handler(ctx, b, update)
 	} else {
-		h.helpHandler(ctx, b, update)
+		msg, err := ValidateAndFixURL(msgParts[0])
+		if err != nil {
+			h.helpHandler(ctx, b, update)
+		}
+		h := h.handlers["/savepdf"]
+		update.Message.Text = fmt.Sprintf("/savepdf %s", msg)
+		h(ctx, b, update)
 	}
 }
 
