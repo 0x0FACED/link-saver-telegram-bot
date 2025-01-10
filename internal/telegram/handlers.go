@@ -260,6 +260,12 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 
 	resp, err := h.api.ConvertToPDF(ctx, req)
 	if err != nil {
+		h.logger.Error("failed convert to pdf",
+			zap.Int64("user", update.Message.From.ID),
+			zap.String("mes", update.Message.Text),
+			zap.Error(err),
+		)
+
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Ошибка, попробуйте позже.",
@@ -273,10 +279,17 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 
 	decompressed, err := decompressPDF(resp.PdfData)
 	if err != nil {
+		h.logger.Error("failed to decompress",
+			zap.Int64("user", update.Message.From.ID),
+			zap.String("mes", update.Message.Text),
+			zap.Error(err),
+		)
+
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "Ошибка, попробуйте позже.",
 		})
+
 		return
 	}
 
@@ -303,6 +316,12 @@ func (h *EventProcessor) savePDFHandler(ctx context.Context, b *bot.Bot, update 
 		},
 	})
 	if err != nil {
+		h.logger.Error("failed to edit message to send file",
+			zap.Int64("user", update.Message.From.ID),
+			zap.String("mes", update.Message.Text),
+			zap.Error(err),
+		)
+
 		b.SendDocument(ctx, &bot.SendDocumentParams{
 			ChatID: update.Message.Chat.ID,
 			ReplyParameters: &models.ReplyParameters{
