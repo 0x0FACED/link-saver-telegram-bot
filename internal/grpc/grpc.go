@@ -64,7 +64,7 @@ func linkService(host string, port string) (gen.LinkServiceClient, error) {
 	return gen.NewLinkServiceClient(conn), nil
 }
 
-const maxMsgSize = 15 * 1024 * 1024 // 15mb
+const maxMsgSize = 30 * 1024 * 1024 // 30mb
 
 func pdfService(host string, port string) (pdf.PDFServiceClient, error) {
 	addr := host + ":" + port
